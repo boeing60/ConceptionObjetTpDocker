@@ -6,7 +6,7 @@
 
 Ensure you have `make` installed on your system.
 
-After cloning te repository run:
+After cloning the repository run:
 ```bash
 make init
 ```
