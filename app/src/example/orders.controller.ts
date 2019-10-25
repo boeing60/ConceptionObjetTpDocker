@@ -13,9 +13,9 @@ import {
 import { request } from 'https'
 
 export default class OrdersController {
-  public path = '/orders'
-  public pathWithId = '/orders/:id'
-  public router = Router()
+  private path = '/orders'
+  private pathId = '/orders/:id'
+  private router = Router()
 
   constructor() {
     this.initializeRoutes()
@@ -24,13 +24,31 @@ export default class OrdersController {
   public initializeRoutes() {
     // initialise le chemin par lequel sera appelé cette classe puis lui dit quel fonction utiliser
     this.router.get(this.path, this.getAll)
+    this.router.get(this.pathId, this.getById)
     this.router.post(this.path, this.create)
-    this.router.put(this.path, this.update)
-    this.router.delete(this.path, this.delete)
+    this.router.put(this.pathId, this.update)
+    this.router.delete(this.pathId, this.delete)
+    this.router.delete(this.path, this.deleteAll)
   }
 
   public getAll = async (request: Request, response: Response) => {
     response.json(JSON.parse(await getAsync('orders')))
+  }
+
+  public getById = async (request: Request, response: Response) => {
+    const id = request.params.id
+
+    const rawOrders: string = await getAsync('orders')
+    const orders: any[] = JSON.parse(rawOrders) || []
+
+    // tslint:disable-next-line: triple-equals
+    const foundOrder: any = orders.find((order) => order.id == id)
+
+    if (!foundOrder) {
+      return response.sendStatus(404)
+    }
+
+    response.json(foundOrder)
   }
 
   public create = async (request: Request, response: Response) => {
@@ -97,6 +115,11 @@ export default class OrdersController {
     const newOrders: any[] = orders.filter((order) => order.id !== orderToDelete.id)
     await setAsync('orders', JSON.stringify(newOrders))
 
+    response.sendStatus(204)
+  }
+
+  public deleteAll = async (request: Request, response: Response) => {
+    await delAsync('orders')
     response.sendStatus(204)
   }
 }
