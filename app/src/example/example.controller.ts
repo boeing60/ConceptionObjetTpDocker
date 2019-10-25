@@ -9,14 +9,18 @@ export default class ExampleController {
   public router = Router()
 
   constructor() {
-    this.intializeRoutes()
+    this.initializeRoutes()
   }
 
-  public intializeRoutes() {
-    this.router.get(this.path, this.getAll)
+  public initializeRoutes() {
+    this.router.get(this.path, this.getAll) // initialise la route via les deux autres fonctions
   }
 
   public getAll = async (request: Request, response: Response) => {
-    response.json([])
+    if (request.originalUrl === '/example') {
+      response.json(['lol', 'clement', request.originalUrl])
+    } else {
+      response.json([request.originalUrl, 'test2'])
+    }
   }
 }

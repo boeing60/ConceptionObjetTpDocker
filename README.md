@@ -16,7 +16,7 @@ Now you can start|stop|restart your server by running:
 make start|stop|restart
 ```
 
-Your server will listen by default on port `3000` of your `$DOCKER_HOST`
+Your server will listen by default on port `1337` of your `$DOCKER_HOST`
 
 You can access the server logs by running:
 ```bash
