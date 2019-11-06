@@ -4,19 +4,14 @@ import {
   Router,
 } from 'express'
 
-import {
-  delAsync,
-  getAsync,
-  setAsync,
-
-} from '../../utils/storage'
-import { request } from 'https' // test
 import IOrder from './orders.interface'
+import OrderService from './orders.service'
 
 export default class OrdersController {
   private path = '/orders'
   private pathId = '/orders/:id'
   private router = Router()
+  private service =  new OrderService()
 
   constructor() {
     this.initializeRoutes()
@@ -33,95 +28,37 @@ export default class OrdersController {
   }
 
   public getAll = async (request: Request, response: Response) => {
-    response.json(JSON.parse(await getAsync('orders')))
+    response.json(await this.service.getAll()).status(200)
   }
 
   public getById = async (request: Request, response: Response) => {
     const id = Number(request.params.id) // car la payload du GET est un string
-    // et vu qu'on a précisé dans ts que c'était un int, il faut le forcer en int
-
-    const rawOrders: string = await getAsync('orders')
-    const orders: IOrder[] = JSON.parse(rawOrders) || []
-
-    // tslint:disable-next-line: triple-equals
-    const foundOrder: IOrder = orders.find((order) => order.id == id)
-
-    if (!foundOrder) {
-      return response.sendStatus(404)
+        // et vu qu'on a précisé dans ts que c'était un int, il faut le forcer en int
+    const result = await this.service.getById(id)
+    if (result === false) {
+      response.sendStatus(204)
+    } else {
+      response.json(result)
     }
-
-    response.json(foundOrder)
   }
 
   public create = async (request: Request, response: Response) => {
-    let orderToSave = request.body
-    const rawOrders = await getAsync('orders')
-    const orders: IOrder[] = JSON.parse(rawOrders) || [] // car au début c'est vide
-
-    const sortedOrders = orders.sort((previous: any, current: any) => {
-      return current.id - previous.id
-    })
-    const lastId = sortedOrders.length > 0 ? sortedOrders[0].id : 0
-
-    // Generate automatic data
-    orderToSave = {
-      ...orderToSave, // ... spread operator ES6
-      id: lastId + 1,
-      createAt: new Date(),
-    }
-
-    orders.push(orderToSave)
-    await setAsync('orders', JSON.stringify(orders)) // on le mets dans la base
-
-    response.status(201).json(orderToSave)
+    const orderToSave = request.body
+    response.status(201).json(await this.service.create(orderToSave))
   }
 
-  public update = async(request: Request, response: Response) => {
+  public update = async (request: Request, response: Response) => {
     const updateInformations: IOrder = request.body
     const id = Number(request.params.id)
-
-    const rawOrders: string = await getAsync('orders')
-    const orders = JSON.parse(rawOrders) || []
-    // tslint:disable-next-line: triple-equals
-    const orderToUpdate = orders.find((order: any) => order.id == id)
-
-    if (!orderToUpdate) {
-      return response.sendStatus(404)
-    }
-
-    const updated = {
-      ...orderToUpdate,
-      ...updateInformations,
-    }
-
-    // tslint:disable-next-line: triple-equals
-    const newOrders = orders.map((order: any) => order.id == updated.id ? updated : order)
-
-    await setAsync('orders', JSON.stringify(newOrders))
-
-    response.sendStatus(204)
+    response.sendStatus(await this.service.update(updateInformations, id))
   }
 
   public delete = async (request: Request, response: Response) => {
     const id = Number(request.params.id)
-
-    const rawOrders: string = await getAsync('orders')
-    const orders: IOrder[] = JSON.parse(rawOrders) || []
-    // tslint:disable-next-line: triple-equals
-    const orderToDelete: IOrder = orders.find((order) => order.id == id)
-
-    if (!orderToDelete) {
-      return response.sendStatus(404)
-    }
-
-    const newOrders: IOrder[] = orders.filter((order) => order.id !== orderToDelete.id)
-    await setAsync('orders', JSON.stringify(newOrders))
-
-    response.sendStatus(204)
+    response.sendStatus(await this.service.delete(id))
   }
 
   public deleteAll = async (request: Request, response: Response) => {
-    await delAsync('orders')
-    response.sendStatus(204)
+    response.sendStatus(await this.service.deleteAll())
   }
 }
