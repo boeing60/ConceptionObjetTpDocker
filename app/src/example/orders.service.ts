@@ -47,7 +47,7 @@ export default class OrderService {
         return orderToSave
     }
 
-    public update = async(updateInformations: any, id: number) => {
+    public update = async (updateInformations: any, id: number) => {
         const rawOrders: string = await getAsync('orders')
         const orders = JSON.parse(rawOrders) || []
         // tslint:disable-next-line: triple-equals
