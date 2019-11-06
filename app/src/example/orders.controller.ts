@@ -11,6 +11,7 @@ import {
 
 } from '../../utils/storage'
 import { request } from 'https'
+import IOrder from './orders.interface'
 
 export default class OrdersController {
   private path = '/orders'
@@ -36,13 +37,14 @@ export default class OrdersController {
   }
 
   public getById = async (request: Request, response: Response) => {
-    const id = request.params.id
+    const id = Number(request.params.id) // car la payload du GET est un string
+    // et vu qu'on a précisé dans ts que c'était un int, il faut le forcer en int
 
     const rawOrders: string = await getAsync('orders')
-    const orders: any[] = JSON.parse(rawOrders) || []
+    const orders: IOrder[] = JSON.parse(rawOrders) || []
 
     // tslint:disable-next-line: triple-equals
-    const foundOrder: any = orders.find((order) => order.id == id)
+    const foundOrder: IOrder = orders.find((order) => order.id == id)
 
     if (!foundOrder) {
       return response.sendStatus(404)
@@ -54,7 +56,7 @@ export default class OrdersController {
   public create = async (request: Request, response: Response) => {
     let orderToSave = request.body
     const rawOrders = await getAsync('orders')
-    const orders: any[] = JSON.parse(rawOrders) || [] // car au début c'est vide
+    const orders: IOrder[] = JSON.parse(rawOrders) || [] // car au début c'est vide
 
     const sortedOrders = orders.sort((previous: any, current: any) => {
       return current.id - previous.id
@@ -75,44 +77,44 @@ export default class OrdersController {
   }
 
   public update = async(request: Request, response: Response) => {
-    const id = request.params.id
-    let updateInformations = request.body
+    const updateInformations: IOrder = request.body
+    const id = Number(request.params.id)
 
-    const rawOrders: string = await getAsync('orders') // on appel la base redis
-    const orders: any[] = JSON.parse(rawOrders) || []
+    const rawOrders: string = await getAsync('orders')
+    const orders = JSON.parse(rawOrders) || []
     // tslint:disable-next-line: triple-equals
-    const orderToUpdate: any = orders.find((order) => order.id == id)
+    const orderToUpdate = orders.find((order: any) => order.id == id)
 
     if (!orderToUpdate) {
       return response.sendStatus(404)
     }
 
-    const newOrders: any[] = orders.map((order) => {
-      if (order.id === orderToUpdate.id) {
-        return {
-          ...order,
-          ...updateInformations,
-        }
-      }
-    })
+    const updated = {
+      ...orderToUpdate,
+      ...updateInformations,
+    }
+
+    // tslint:disable-next-line: triple-equals
+    const newOrders = orders.map((order: any) => order.id == updated.id ? updated : order)
+
     await setAsync('orders', JSON.stringify(newOrders))
 
     response.sendStatus(204)
   }
 
   public delete = async (request: Request, response: Response) => {
-    const id = request.params.id
+    const id = Number(request.params.id)
 
     const rawOrders: string = await getAsync('orders')
-    const orders: any[] = JSON.parse(rawOrders) || []
+    const orders: IOrder[] = JSON.parse(rawOrders) || []
     // tslint:disable-next-line: triple-equals
-    const orderToDelete: any = orders.find((order) => order.id == id)
+    const orderToDelete: IOrder = orders.find((order) => order.id == id)
 
     if (!orderToDelete) {
       return response.sendStatus(404)
     }
 
-    const newOrders: any[] = orders.filter((order) => order.id !== orderToDelete.id)
+    const newOrders: IOrder[] = orders.filter((order) => order.id !== orderToDelete.id)
     await setAsync('orders', JSON.stringify(newOrders))
 
     response.sendStatus(204)
