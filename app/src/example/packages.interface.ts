@@ -6,5 +6,5 @@ export default interface IPackages {
     width: IMeasure
     height: IMeasure
     weight: IMeasure
-    product: IProducts
+    product: IProducts []
 }

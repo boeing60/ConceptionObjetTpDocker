@@ -63,3 +63,8 @@ To connect to a container, run:
 ```bash
 docker exec -ti <container_name> sh
 ```
+
+## Link of the drive with the UML diagram
+
+https://drive.google.com/file/d/1zWaSLMCeMVx3PNrvXUrIuxN6Fw30PtS4/view?usp=sharing
+
