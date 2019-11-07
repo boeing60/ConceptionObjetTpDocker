@@ -5,13 +5,15 @@ import {
 } from 'express'
 
 import IOrder from './orders.interface'
+import { OrderProxy } from './orders.proxy'
 import OrderService from './orders.service'
+import IService from './service.interface'
 
 export default class OrdersController {
   private path = '/orders'
   private pathId = '/orders/:id'
   private router = Router()
-  private service =  new OrderService()
+  private service: IService =  new OrderProxy(new OrderService())
 
   constructor() {
     this.initializeRoutes()
